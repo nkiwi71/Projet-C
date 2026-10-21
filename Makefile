@@ -1,27 +1,29 @@
-# Définition du compilateur et des options
+# Build configuration for the SVG shape-list application.
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra -g
+CFLAGS = -Wall -Werror -std=c99 -fstack-protector
+EXEC = projet_svg
 
-# Nom de l'exécutable final
-TARGET = projet_svg
-
-# Liste des fichiers sources
-SRCS = main.c
-
-# Fichiers objets générés
+SRCS = main.c shapes.c list.c actions.c modify.c export.c
 OBJS = $(SRCS:.c=.o)
 
-# Règle pour compiler le projet
-build: $(TARGET)
+# Compile and link the application.
+all: $(EXEC)
 
-# Édition des liens
-$(TARGET): $(OBJS)
-    $(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+$(EXEC): $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $(EXEC)
 
-# Compilation des fichiers .c en .o
+# Compile one source file into an object file.
 %.o: %.c
-    $(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Règle pour nettoyer le projet
+# Alias for the default build target.
+build: all
+
+# Remove generated object files and the executable.
 clean:
-    rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(EXEC)
+
+run: $(EXEC)
+	make clean
+	make build
+	./$(EXEC)
