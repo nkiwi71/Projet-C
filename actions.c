@@ -6,6 +6,7 @@
 #include "shapes.h"
 #include "list.h"
 #include "export.h"
+#include "ask_int.h"
 
 #define COLOR_RESET "\033[0m"
 #define COLOR_RED "\033[31m"
@@ -15,7 +16,7 @@
 #define COLOR_CYAN "\033[36m"
 
 /**
- * @brief Read shape properties and fill, then append a black-outlined shape.
+ * @brief Read shape properties, fill and optional rotation, then append the shape.
  * @param my_list List receiving the shape; must not be NULL.
  */
 void action_create_shape(list_t* my_list) {
@@ -29,20 +30,13 @@ void action_create_shape(list_t* my_list) {
         return;
     }
 
-    int shape_choice = 0;
-        printf("\nChoose a shape:\n"
-            COLOR_BLUE "  1. Circle\n"
-            "  2. Rectangle\n"
-            "  3. Square\n"
-            "  4. Ellipse\n"
-            "  5. Line\n" COLOR_RESET
-            "Your choice: ");
-    if (scanf("%d", &shape_choice) != 1) {
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF) {}
-        printf("Invalid input.\n");
-        return;
-    }
+    printf("\nChoose a shape:\n"
+        COLOR_BLUE "  1. Circle\n"
+        "  2. Rectangle\n"
+        "  3. Square\n"
+        "  4. Ellipse\n"
+        "  5. Line\n" COLOR_RESET);
+    int shape_choice = ask_integer("Your choice: ");
 
     if (shape_choice < 1 || shape_choice > 5) {
         printf("Erreur : Le choix %d n'existe pas ! (Choix valides : 1 à 5)\n", shape_choice);
@@ -51,17 +45,10 @@ void action_create_shape(list_t* my_list) {
 
     char fill[8] = "none";
     if (shape_choice != 5) {
-        int fill_choice = 0;
-         printf("\n" COLOR_YELLOW "Fill the shape?\n"
-             "  1. No\n"
-             "  2. Yes\n" COLOR_RESET
-             "Your choice: ");
-        if (scanf("%d", &fill_choice) != 1) {
-            int c;
-            while ((c = getchar()) != '\n' && c != EOF) {}
-            printf("Invalid input.\n");
-            return;
-        }
+        printf("\n" COLOR_YELLOW "Fill the shape?\n"
+            "  1. No\n"
+            "  2. Yes\n" COLOR_RESET);
+        int fill_choice = ask_integer("Your choice: ");
         if (fill_choice < 1 || fill_choice > 2) {
             printf("Invalid fill choice.\n");
             return;
@@ -74,42 +61,51 @@ void action_create_shape(list_t* my_list) {
         }
     }
 
-    int x = 0, y = 0;
-    printf(COLOR_CYAN "Starting X position: " COLOR_RESET); scanf("%d", &x);
-    printf(COLOR_CYAN "Starting Y position: " COLOR_RESET); scanf("%d", &y);
+    printf("\n" COLOR_YELLOW "Rotate the shape?\n"
+        "  1. No\n"
+        "  2. Yes\n" COLOR_RESET);
+    int rotation_choice = ask_integer("Your choice: ");
+    if (rotation_choice < 1 || rotation_choice > 2) {
+        printf("Invalid rotation choice.\n");
+        return;
+    }
+
+    int rotation = 0;
+    if (rotation_choice == 2) {
+        rotation = ask_integer(COLOR_CYAN "Rotation (degrees): " COLOR_RESET);
+    }
+
+    int x = ask_integer(COLOR_CYAN "Starting X position: " COLOR_RESET);
+    int y = ask_integer(COLOR_CYAN "Starting Y position: " COLOR_RESET);
 
     shape_t* new_shape = NULL;
 
     if (shape_choice == 1) {
-        int r = 0;
-        printf("Radius: "); scanf("%d", &r);
+        int r = ask_integer("Radius: ");
         new_shape = create_circle(x, y, r, "black", fill);
     }
     else if (shape_choice == 2) {
-        int w = 0, h = 0;
-        printf("Width: "); scanf("%d", &w);
-        printf("Height: "); scanf("%d", &h);
+        int w = ask_integer("Width: ");
+        int h = ask_integer("Height: ");
         new_shape = create_rectangle(x, y, w, h, "black", fill);
     }
     else if (shape_choice == 3) {
-        int size = 0;
-        printf("Square size: "); scanf("%d", &size);
+        int size = ask_integer("Square size: ");
         new_shape = create_square(x, y, size, "black", fill);
     }
     else if (shape_choice == 4) {
-        int rx = 0, ry = 0;
-        printf("X radius: "); scanf("%d", &rx);
-        printf("Y radius: "); scanf("%d", &ry);
+        int rx = ask_integer("X radius: ");
+        int ry = ask_integer("Y radius: ");
         new_shape = create_ellipse(x, y, rx, ry, "black", fill);
     }
     else if (shape_choice == 5) {
-        int x2 = 0, y2 = 0;
-        printf("Ending X position: "); scanf("%d", &x2);
-        printf("Ending Y position: "); scanf("%d", &y2);
+        int x2 = ask_integer("Ending X position: ");
+        int y2 = ask_integer("Ending Y position: ");
         new_shape = create_line(x, y, x2, y2, "black", fill);
     }
 
     if (new_shape != NULL) {
+        new_shape->style.rotation = rotation;
         add_shape(my_list, new_shape);
         printf("\n" COLOR_GREEN "Shape added successfully! (Total in list: %u)\n" COLOR_RESET,
                my_list->length);
@@ -133,14 +129,7 @@ void action_delete_shape(list_t* my_list) {
 
     action_visualize(my_list);
 
-    int index = 0;
-    printf("\nEnter the number of the shape to delete: ");
-    if (scanf("%d", &index) != 1) {
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF) {}
-        printf("Invalid input.\n");
-        return;
-    }
+    int index = ask_integer("\nEnter the number of the shape to delete: ");
 
     if (delete_shape(my_list, index)) {
         printf("\n" COLOR_GREEN "Shape no. %d deleted successfully!\n" COLOR_RESET, index);
@@ -172,29 +161,29 @@ void action_visualize(list_t* my_list) {
         shape_t* s = current->shape;
 
         if (s->type == CIRCLE) {
-            printf("Shape %d: CIRCLE [X:%d, Y:%d, Radius:%d]\n",
+            printf("Shape %d: CIRCLE [X:%d, Y:%d, Radius:%d, Rotation:%d°]\n",
                    count, s->style.pos_x, s->style.pos_y,
-                   s->data.circle.radius);
+                   s->data.circle.radius, s->style.rotation);
         }
         else if (s->type == RECTANGLE) {
-            printf("Shape %d: RECTANGLE [X:%d, Y:%d, Width:%d, Height:%d]\n",
+            printf("Shape %d: RECTANGLE [X:%d, Y:%d, Width:%d, Height:%d, Rotation:%d°]\n",
                    count, s->style.pos_x, s->style.pos_y,
-                   s->data.rectangle.width, s->data.rectangle.height);
+                   s->data.rectangle.width, s->data.rectangle.height, s->style.rotation);
         }
         else if (s->type == SQUARE) {
-            printf("Shape %d: SQUARE [X:%d, Y:%d, Size:%d]\n",
+            printf("Shape %d: SQUARE [X:%d, Y:%d, Size:%d, Rotation:%d°]\n",
                    count, s->style.pos_x, s->style.pos_y,
-                   s->data.square.size);
+                   s->data.square.size, s->style.rotation);
         }
         else if (s->type == ELLIPSE) {
-            printf("Shape %d: ELLIPSE [X:%d, Y:%d, Rx:%d, Ry:%d]\n",
+            printf("Shape %d: ELLIPSE [X:%d, Y:%d, Rx:%d, Ry:%d, Rotation:%d°]\n",
                    count, s->style.pos_x, s->style.pos_y,
-                   s->data.ellipse.radius_x, s->data.ellipse.radius_y);
+                   s->data.ellipse.radius_x, s->data.ellipse.radius_y, s->style.rotation);
         }
         else if (s->type == LINE) {
-            printf("Shape %d: LINE [From X1:%d,Y1:%d to X2:%d,Y2:%d]\n",
+            printf("Shape %d: LINE [From X1:%d,Y1:%d to X2:%d,Y2:%d, Rotation:%d°]\n",
                    count, s->style.pos_x, s->style.pos_y,
-                   s->data.line.pt2_x, s->data.line.pt2_y);
+                   s->data.line.pt2_x, s->data.line.pt2_y, s->style.rotation);
         }
 
         current = current->next;
@@ -215,20 +204,13 @@ void action_export_svg(list_t* my_list) {
     if (export_svg(my_list, "dessin.svg")) {
          printf(COLOR_GREEN "Export réussi : dessin.svg\n\n" COLOR_RESET);
 
-        int open_choice = 0;
-         printf(COLOR_YELLOW "Open the file?\n"
-             "  1. No\n"
-             "  2. Open SVG\n" COLOR_RESET
-             "Your choice: ");
-        if (scanf("%d", &open_choice) == 1) {
-            if (open_choice == 2) {
-                system("open dessin.svg");
-            }
+        printf(COLOR_YELLOW "Open the file?\n"
+            "  1. No\n"
+            "  2. Open SVG\n" COLOR_RESET);
+        int open_choice = ask_integer("Your choice: ");
+        if (open_choice == 2) {
+            system("open dessin.svg");
         }
-        
-        // Vider le buffer si besoin
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF) {}
 
     } else {
         printf(COLOR_RED "Échec de l'export SVG.\n" COLOR_RESET);
@@ -245,13 +227,11 @@ bool action_fill_color(char* fill) {
     for (;;) {
         printf(COLOR_CYAN "Enter fill color (#RRGGBB) or 'help': " COLOR_RESET);
         if (scanf("%31s", color_input) != 1) {
-            int c;
-            while ((c = getchar()) != '\n' && c != EOF) {}
+            clear_input();
             printf("Invalid input.\n");
             return false;
         }
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF) {}
+        clear_input();
 
         if (strcmp(color_input, "help") == 0) {
             system("open https://htmlcolorcodes.com/color-picker/");

@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = -Wall -Werror -std=c99 -fstack-protector
 EXEC = projet_svg
 
-SRCS = main.c shapes.c list.c actions.c modify.c export.c
+SRCS = main.c shapes.c list.c actions.c modify.c export.c ask_int.c
 OBJS = $(SRCS:.c=.o)
 
 # Compile and link the application.

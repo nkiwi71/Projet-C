@@ -9,6 +9,7 @@
 #define COLOR_CYAN    "\033[36m"
 #include "actions.h"
 #include "list.h"
+#include "ask_int.h"
 
 /**
  * @brief Create the shape list and dispatch menu choices until quit.
@@ -31,9 +32,7 @@ int main(void) {
         printf("|" COLOR_GREEN " 4. Export          " COLOR_RESET "|\n");
         printf("|" COLOR_MAGENTA " 5. Visualize       " COLOR_RESET "|\n");
         printf("|" COLOR_CYAN " 0. Quit            " COLOR_RESET "|\n");
-        printf("Your choice: ");
-        
-        scanf("%d", &choice); 
+        choice = ask_integer("Your choice: ");
 
         switch (choice) {
 
@@ -42,7 +41,7 @@ int main(void) {
             case 3: system("clear"); action_delete_shape(my_list); break;
             case 4: system("clear"); action_export_svg(my_list); break;
             case 5: system("clear"); action_visualize(my_list); break;
-            case 0: system("make clean"); system("clear"); printf("Thank you!\n"); break;
+            case 0: system("make clean"); system("clear"); printf("Thank you!\n\n"); break;
             default: printf("Invalid choice.\n"); break;
         }
     } while (choice != 0);

@@ -1,0 +1,3 @@
+*.o
+/projet_svg
+.DS_Store

@@ -20,6 +20,7 @@ shape_t* allocate_shape(int x, int y, char* stroke, char* fill) {
 
     shape->style.pos_x = x;
     shape->style.pos_y = y;
+    shape->style.rotation = 0;
     shape->style.stroke_color = stroke;
     shape->style.fill_color = NULL;
     if (fill != NULL) {
